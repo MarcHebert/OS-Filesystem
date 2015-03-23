@@ -1,10 +1,18 @@
 //Marc Hebert
 //260574038
-#define BLOCKSIZE 512
-#define NUM_BLOCKS 4096
+#define BLOCKSIZE_ 512
+#define NUM_BLOCKS_ 4096
+#define NUM_INODES_ 101
+
 #include "types.h"
 #include "diskemu.h"
+#include "superblock.h"
 
+//int blocksize, numblocks, numinodes dirindex;
+//cached super block
+sblock sb;
+
+char defaultname[] = "MarcFS";
 int errorstatus = 0;
 
 int sfs_open(char* filename)
@@ -71,11 +79,26 @@ int mksfs(int fresh)
 {
 	if(fresh==0)//new file system
 	{
-		errorstatus = init_fresh_disk(FILENAME, BLOCKSIZE, NUM_BLOCKS);
+		errorstatus = init_fresh_disk(defaultname, BLOCKSIZE, NUM_BLOCKS);
+
+		//setup superblock
+		sb.magic = 0xAABB0005;
+		sb.blksz = BLOCKSIZE_;
+		sb.fsSize = NUM_BLOCKS_;
+		sb.rtdir = //TO BE DETERMINED
+
+		//write superblock to disk
+		write_blocks(0,1,(void*)&sb);
+
 	}
+
 	else//existing file system
 	{
-		errorstatus = init_disk(FILENAME, BLOCKSIZE, NUM_BLOCKS);
+		errorstatus = init_disk(defualtname, BLOCKSIZE, NUM_BLOCKS);
+		
+		//read superblock
+		void buf;
+		read_blocks(0,1, (void*)&sb);
 	}
 	return errorstatus;
 }

@@ -8,3 +8,5 @@ int sfs_fseek(int fileID, int offset);
 int sfs_remove(char *file);
 int sfs_get_next_filename(char* filename);
 int sfs_GetFileSize(const char* path);
+
+//new functions

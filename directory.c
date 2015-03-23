@@ -6,3 +6,6 @@
 
 //max number of files is 100
 //Linked list or array of entries?
+
+//directory block pointer 
+//free block list pointer
