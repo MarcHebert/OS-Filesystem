@@ -1,19 +1,35 @@
 //Marc Hebert
 //260574038
-#define BLOCKSIZE_ 512
-#define NUM_BLOCKS_ 4096
+#define BLOCKSIZE_ 16384 //large block size means one structure per block
+#define NUM_BLOCKS_ 150
 #define NUM_INODES_ 101
 
+#include <string.h>
 #include "types.h"
 #include "diskemu.h"
 #include "superblock.h"
+#include "filedescriptortable.h"
+#include "directory.h"
 
-//int blocksize, numblocks, numinodes dirindex;
-//cached super block
+//cached items
 sblock sb;
+fbitmap fbm;
+inode_cache icache;
+FTDentry FDTtable[NUM_INODES_];
+
+//directory setup
+	directory d;
+	int x;
+	for(x = 0; x<NUM_INODES_; x++)//initialize all slots to empty
+	{
+		d.list[x].active = 0;
+	}
+	int dirIterIndx = 0; //current directory index (necessary for GetNextFileName() )
+
 
 char defaultname[] = "MarcFS";
 int errorstatus = 0;
+
 
 int sfs_open(char* filename)
 {
@@ -43,8 +59,6 @@ int sfs_fwrite(int fileID, const char *buf, int length)
 	//will obviously use diskemu.write_blocks()
 
 	buf = malloc(BLOCKSIZE*sizeof(char));
-	
-
 }
 
 int sfs_fread(int fileID, char *buf, int length);
@@ -63,18 +77,43 @@ int sfs_remove(char *file);
 
 int sfs_get_next_filename(char* filename)
 {
-	int nextfile = 1;
-	//some call to directory
-	//possible some global variable that 
-	//keeps track of current position in the directory
-	// this will probably be relegated to directory.h
+	int nextfile = d.list[dirIterIndx].active//check if next entry has file
+	if (nextfile !=0)
+	{
+		strcpy(filename, d.list[dirIterIndx].fname);
+		dirIterIndx++;
+		if (dirIterIndx>=NUM_INODES_)//if last file possible
+		{
+			dirIterIndx = 0;
+			nextfile = 0;
+		}
+	}
+	else
+	{
+		dirIterIndx = 0;//if no more files, reset directory index to 0
+	}
 	return nextfile;
 }
-int sfs_GetFileSize(const char* path);
+int sfs_GetFileSize(const char* path)
+{
+	//assuming path is name? otherwise will have to come back and fix
+	char* name = null;
+	int brk = 0;
+	while(strcmp(path,name)!=0)
+	{
+		if(sfs_get_next_filename(name)==0)
+			//file doesn't exist
+			return 0;
+	}
+	//fetch inode from dir and then pull size from cache
+	return icache.i[d.list[dirIterIndx-1].inode].size
+}
+
 int sfs_fclose(int fileID);
 {
 	//remove entry from OFT
 }
+
 int mksfs(int fresh)
 {
 	if(fresh==0)//new file system
