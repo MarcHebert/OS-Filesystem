@@ -1,4 +1,3 @@
-#define MAXFILENAME 13
 
 int mksfs(int fresh);
 int sfs_fopen(char *name);

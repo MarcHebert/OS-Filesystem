@@ -1,0 +1,2 @@
+deleteFile();
+newFile();
