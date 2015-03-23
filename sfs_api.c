@@ -1,10 +1,19 @@
 //Marc Hebert
 //260574038
 #define BLOCKSIZE 512
+#define NUM_BLOCKS 4096
 #include "types.h"
+#include "diskemu.h"
+
+int errorstatus = 0;
 
 int sfs_open(char* filename)
 {
+	//check FDT or inodes to see if file exists
+	//if DNE, create file & set size to 0
+	// else open in append mode ( set file pointer to EOF using sfs_seek)
+	//
+
 	int inode = get_inode(filename);
 	int nextfile = find_next_free_slot(open_file_table);
 	make_open_file_table_entry(nextfile, inode);
@@ -18,7 +27,55 @@ int sfs_open(char* filename)
 
 int sfs_fwrite(int fileID, const char *buf, int length)
 {
+	//writes length*bytes of buffered data in buf onto the open file
+	//starting from read/write pointer
+
+	//increases the size of the file by length*bytes
+
+	//will obviously use diskemu.write_blocks()
+
 	buf = malloc(BLOCKSIZE*sizeof(char));
 	
 
+}
+
+int sfs_fread(int fileID, char *buf, int length);
+int sfs_fseek(int fileID, int offset)
+{
+
+	//moves read/write pointer to given location
+}
+
+int sfs_remove(char *file);
+{
+	//removes file from directory.h
+	//remove entry from inode table
+	//release data blocks used by the file
+}
+
+int sfs_get_next_filename(char* filename)
+{
+	int nextfile = 1;
+	//some call to directory
+	//possible some global variable that 
+	//keeps track of current position in the directory
+	// this will probably be relegated to directory.h
+	return nextfile;
+}
+int sfs_GetFileSize(const char* path);
+int sfs_fclose(int fileID);
+{
+	//remove entry from OFT
+}
+int mksfs(int fresh)
+{
+	if(fresh==0)//new file system
+	{
+		errorstatus = init_fresh_disk(FILENAME, BLOCKSIZE, NUM_BLOCKS);
+	}
+	else//existing file system
+	{
+		errorstatus = init_disk(FILENAME, BLOCKSIZE, NUM_BLOCKS);
+	}
+	return errorstatus;
 }
