@@ -26,5 +26,22 @@ Bitmap* b_init(int bits)
 	int bytes = bits / 8;
 	Bitmap* b = (Bitmap*)malloc(sizeof(b));
 	b->mp = (bitmap_t)malloc(bytes);
+	b->numbits = bits;
+	b->lastfreebit = 0;
 	return b;
+}
+
+int b_getfreebit(Bitmap* b)
+{
+	int x;
+	for(x = 0;x<b->numbits;x++)//iterate until free bit found
+	{
+		if (b_getbit(b,(b->lastfreebit+x)%b->numbits) == 0)//found free bit
+		{
+			b->lastfreebit = (b->lastfreebit+x)%b->numbits);
+			return b->lastfreebit;
+		}
+	}
+	//else no free bits
+	return -1;
 }
