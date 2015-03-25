@@ -15,7 +15,7 @@ directory d_getDir()
 	return d;
 }
 
-void d_initDir(directory d)
+void d_initDir()
 {
 	int x;
 	for(x = 0; x<MAX_FILES; x++)//initialize all slots to empty
@@ -23,7 +23,6 @@ void d_initDir(directory d)
 		d.list[x].active = 0;
 	}
 	dirIterIndx = 0; //current directory index (necessary for GetNextFileName() )
-	d.lstIndx = 0;
 }
 
 int d_addEntry(int id, char* name)

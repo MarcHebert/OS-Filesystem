@@ -11,7 +11,6 @@ struct d_entry
 
 typedef struct
 {
-	int lstIndx;
 	dent list[MAX_FILES];//should be NUM_INDODES_ as defined in sfs_api.c
 } directory;
 

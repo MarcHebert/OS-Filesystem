@@ -1,8 +1,5 @@
 //Marc Hebert
 //260574038
-#define BLOCKSIZE_ 16384 //large block size means one structure per block
-#define NUM_BLOCKS_ 150
-#define NUM_INODES_ 101
 
 #include "constants.h"
 #include "types.h"
@@ -16,15 +13,6 @@
 sblock sb;
 fbitmap fbm;
 FTDentry FDTtable[NUM_INODES_];
-
-//directory setup
-	directory d;
-	int x;
-	for(x = 0; x<NUM_INODES_; x++)//initialize all slots to empty
-	{
-		d.list[x].active = 0;
-	}
-	int dirIterIndx = 0; //current directory index (necessary for GetNextFileName() )
 
 
 char defaultname[] = "MarcFS";
@@ -156,6 +144,12 @@ int mksfs(int fresh)
 	if(fresh==0)//new file system
 	{
 		errorstatus = init_fresh_disk(defaultname, BLOCKSIZE, NUM_BLOCKS);
+
+		//setup directory
+		d_initDir();
+
+		//setup inodetable
+		i_initCache();
 
 		//setup superblock
 		sb.magic = 0xAABB0005;

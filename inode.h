@@ -6,11 +6,8 @@
 
 struct i_node
 {
-	int mode,
-		linkcnt,
-		uid,
-		gid,
-		size;
+	int active;
+	int size;
 	int pointers[12];
 	int indPointer;
 }typedef inode;
