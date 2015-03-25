@@ -4,17 +4,17 @@
 #define NUM_BLOCKS_ 150
 #define NUM_INODES_ 101
 
-#include <string.h>
+#include "constants.h"
 #include "types.h"
 #include "diskemu.h"
 #include "superblock.h"
 #include "filedescriptortable.h"
 #include "directory.h"
+#include "inode.h"
 
 //cached items
 sblock sb;
 fbitmap fbm;
-inode_cache icache;
 FTDentry FDTtable[NUM_INODES_];
 
 //directory setup
@@ -36,8 +36,37 @@ int sfs_open(char* filename)
 	//check FDT or inodes to see if file exists
 	//if DNE, create file & set size to 0
 	// else open in append mode ( set file pointer to EOF using sfs_seek)
-	//
+	
+	
+	//does file exist?
+	int index = d_name2Index(filename);
+	if(index<0)//file doesn't exist
+	{
+		
+	}
 
+	char* name = null;
+	while(strcmp(filename,name)!=0)
+	{
+		if(sfs_get_next_filename(name)==0)
+		{
+			//file doesn't exist
+			exist = 0;
+			break;
+		}
+	}
+
+	if (exist != 0)//file exists,
+	{
+
+	}
+	else//file does not exist
+	{
+
+
+	}
+
+	/*
 	int inode = get_inode(filename);
 	int nextfile = find_next_free_slot(open_file_table);
 	make_open_file_table_entry(nextfile, inode);
@@ -47,6 +76,7 @@ int sfs_open(char* filename)
 	make_file_desc_entry(filedesc, nextfile, read_pointer, write_pointer)
 
 	return filedesc;
+	*/
 }
 
 int sfs_fwrite(int fileID, const char *buf, int length)
@@ -77,6 +107,13 @@ int sfs_remove(char *file);
 
 int sfs_get_next_filename(char* filename)
 {
+	if (d_getNextDirName(filename)<0)
+	{
+		return 0;
+	}
+	else
+		return 1;
+	/*
 	int nextfile = d.list[dirIterIndx].active//check if next entry has file
 	if (nextfile !=0)
 	{
@@ -93,12 +130,12 @@ int sfs_get_next_filename(char* filename)
 		dirIterIndx = 0;//if no more files, reset directory index to 0
 	}
 	return nextfile;
+	*/
 }
 int sfs_GetFileSize(const char* path)
 {
 	//assuming path is name? otherwise will have to come back and fix
 	char* name = null;
-	int brk = 0;
 	while(strcmp(path,name)!=0)
 	{
 		if(sfs_get_next_filename(name)==0)
