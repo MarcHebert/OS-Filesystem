@@ -2,7 +2,7 @@
 //260574038
 
 #define BLOCKSIZE_ 512 //large block size means one structure per block
-#define NUM_BLOCKS_ BLOCKSIZE_ * 8 //free data block bitmap restriction
+#define NUM_BLOCKS_ BLOCKSIZE_ * 7 //free data block bitmap restriction (max is more but playing it it safe)
 #define NUM_INODES_ 101
 #define MAX_FILES_ 100
 #define MAX_FILE_NAME_ 16

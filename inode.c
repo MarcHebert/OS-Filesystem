@@ -2,9 +2,8 @@
 //260574038
 
 icache* ic;
-Bitmap* iFree = b_init((NUM_INODES_ / 8)+1)*8);
 //inode_cache.i[DIR_INODE_] will point to directory number
-void i_initCache()
+icache* i_initCache()
 {
 	int x;
 	for (x = 0; x<MAX_FILES_;x++)
@@ -12,6 +11,7 @@ void i_initCache()
 		ic->i[x].active = 0;
 		ic->i[x].size = 0;
 	}
+	ic->iFree= b_init(NUM_INODES_);
 }
 
 icache* i_getIcache()
@@ -28,17 +28,17 @@ void i_setIcache(icache* tmp)
 
 int i_newEntry()
 {
-	int index = b_getfreebit(iFree);
+	int index = b_getfreebit(ic->iFree);
 	if(index <0)//no more free inodes
 		return -1;
-	b_set(iFree, index);
+	b_set(ic->iFree, index);
 	ic->i[index].active = 1;
 	return index;
 }
 
 void i_deleteEntry(int index)//TODO error handling
 {
-	b_unset(iFree, index);
+	b_unset(ic->iFree, index);
 	ic->i[index].active = 0;
 	ic->i[index].size = 0;
 	//TODO set pointers to null

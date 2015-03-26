@@ -1,6 +1,7 @@
 //Marc Hebert
 //260574038
 
+
 #include <stdint.h>
 #include <stdlib.h>
 #include "bitmap.h"
@@ -23,7 +24,8 @@ int b_getbit(Bitmap* b, int i)
 
 Bitmap* b_init(int bits)
 {
-	int bytes = bits / 8;
+	double exactbytes = (bits / 8.0);
+	int bytes = (int) ceil(exactbytes);//to properly size map in terms of bytes
 	Bitmap* b = (Bitmap*)malloc(sizeof(b));
 	b->mp = (bitmap_t)malloc(bytes);
 	b->numbits = bits;

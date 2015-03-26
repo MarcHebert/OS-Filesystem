@@ -15,9 +15,10 @@ struct i_node
 typedef struct 
 {
 	inode i[101];
+	Bitmap iFree;
+}icache;
 
-}typedef icache;
-
+icache* i_initCache();
 int i_deleteEntry();
 int i_newEntry();
 void i_setIcache( icache tmp);

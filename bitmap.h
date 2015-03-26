@@ -2,6 +2,7 @@
 //260574038
 #include "constants.h"
 #include <stdlib.h>
+#include <math.h>
 
 typedef unsigned char* bitmap_t;
 
