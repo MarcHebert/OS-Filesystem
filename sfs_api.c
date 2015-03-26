@@ -30,12 +30,22 @@ int sfs_open(char* filename)
 	int index = d_name2Index(filename);
 	if(index<0)//file doesn't exist
 	{
+		//create the new file
+		index = i_newEntry(); //index is inode in this case
+		if(index<0)//any open directory slots?
+			return -1;
+		d_addEntry(index, filename);
+		f_activate(index);
 		
 	}
 	else//file exists
 	{
-
+		f_activate(d_getInode(index));
+		f_setRW(index, i_getSize(index))//set RW pointer to end of file (append)
+		
 	}
+
+	return index; //inode
 
 
 	/*
@@ -107,20 +117,24 @@ int sfs_get_next_filename(char* filename)
 int sfs_GetFileSize(const char* path)
 {
 	//assuming path is name? otherwise will have to come back and fix
-	char* name = null;
+	/*char* name = null;
 	while(strcmp(path,name)!=0)
 	{
 		if(sfs_get_next_filename(name)==0)
 			//file doesn't exist
 			return 0;
 	}
+	*/
 	//fetch inode from dir and then pull size from cache
-	return icache.i[d.list[dirIterIndx-1].inode].size
+	int index = d_name2Index(path);
+	if(index<0)//file doesn't exist
+		return -1;
+
 }
 
 int sfs_fclose(int fileID);
 {
-	//remove entry from OFT
+	f_deactivate(fileID);
 }
 
 int mksfs(int fresh)

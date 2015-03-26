@@ -12,11 +12,12 @@ struct d_entry
 typedef struct
 {
 	dent list[MAX_FILES];//should be NUM_INDODES_ as defined in sfs_api.c
+	int numEntry;
 } directory;
 
-void d_setDir(directory tmp);
-directory d_getDir();
-void d_initDir(directory d);
+void d_setDir(directory* tmp);
+directory* d_getDir();
+void d_initDir();
 int d_addEntry(int id, char* name);
 void resetDirIter();
 int d_getNextDirName(char* namebuf);

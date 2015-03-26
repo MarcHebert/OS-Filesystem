@@ -29,12 +29,16 @@ void i_setIcache(icache* tmp)
 int i_newEntry()
 {
 	int index = b_getfreebit(iFree);
+	if(index <0)//no more free inodes
+		return -1;
+	b_set(iFree, index);
 	ic->i[index].active = 1;
 	return index;
 }
 
 void i_deleteEntry(int index)
 {
+	b_unset(iFree, index);
 	ic->i[index].active = 0;
 	ic->i[index].size = 0;
 }
@@ -42,6 +46,11 @@ void i_deleteEntry(int index)
 int i_getSize(int index)
 {
 	return ic->i[index].size;
+}
+
+void i_setSize(int index, int sz)
+{
+	ic->i[index].size = sz;
 }
 
 int i_getPointer(int index, int pointerNum)
