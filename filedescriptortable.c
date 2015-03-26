@@ -36,7 +36,7 @@ void f_setRW(int inode, int newrw)
 
 void f_incdecRW(int inode, int incdec)
 {
-	ft->f[inode].rw = f_getRW(inode)+ incdec;
+	ft->f[inode].rw = f_getRW(inode)+ incdec;//TODO add error handling
 }
 
 void f_deactivate(int inode)

@@ -78,10 +78,10 @@ int sfs_fread(int fileID, char *buf, int length);
 int sfs_fseek(int fileID, int offset)
 {
 
-	//moves read/write pointer to given location
+	f_incdecRW(fileID, offset);//TODO add error handling
 }
 
-int sfs_remove(char *file);
+int sfs_remove(char *file)
 {
 	int index = d_name2Index(file);
 	if(index<0)
@@ -138,7 +138,7 @@ int sfs_GetFileSize(const char* path)
 	return i_getSize(d_getInode(index));
 }
 
-int sfs_fclose(int fileID);
+int sfs_fclose(int fileID)
 {
 	f_deactivate(fileID);
 }

@@ -8,7 +8,7 @@ struct i_node
 {
 	int active;
 	int size;
-	int pointers[12];
+	int pointers[NUM_DIR_DATABLOCKS_];
 	int indPointer;
 }typedef inode;
 

@@ -6,7 +6,7 @@ struct d_entry
 {
 	int active;
 	int inode;
-	char* fname[MAX_FILE_NAME+MAX_FILE_EXT+1];
+	char* fname[MAX_FILE_NAME_+MAX_FILE_EXT_+2];//two extra chars for period seperator and null terminator
 }typedef dent;
 
 typedef struct
