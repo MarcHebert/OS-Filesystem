@@ -31,21 +31,22 @@ int sfs_open(char* filename)
 	if(index<0)//file doesn't exist
 	{
 		//create the new file
-		index = i_newEntry(); //index is inode in this case
-		if(index<0)//any open directory slots?
+		int id = i_newEntry(); //index is inode in this case
+		if(id<0)//any open directory slots?
 			return -1;
-		d_addEntry(index, filename);
-		f_activate(index);
+		d_addEntry(id, filename);
+		f_activate(id);
 		
 	}
 	else//file exists
 	{
-		f_activate(d_getInode(index));
-		f_setRW(index, i_getSize(index))//set RW pointer to end of file (append)
+		int id = d_getInode(index)
+		f_activate(id);
+		f_setRW(id, i_getSize(id))//set RW pointer to end of file (append)
 		
 	}
 
-	return index; //inode
+	return id; //inode
 
 
 	/*
@@ -82,9 +83,14 @@ int sfs_fseek(int fileID, int offset)
 
 int sfs_remove(char *file);
 {
-	//removes file from directory.h
-	//remove entry from inode table
-	//release data blocks used by the file
+	int index = d_name2Index(file);
+	if(index<0)
+		return -1;//file doesn't exist
+	//will possibly change to not return error and instead do nothing
+	int id = d_getInode(index);
+	i_deleteEntry(id);// TODO error handle here
+	//TODO release data blocks used by the file
+	return d_removeEntry(index);
 }
 
 int sfs_get_next_filename(char* filename)
@@ -129,7 +135,7 @@ int sfs_GetFileSize(const char* path)
 	int index = d_name2Index(path);
 	if(index<0)//file doesn't exist
 		return -1;
-
+	return i_getSize(d_getInode(index));
 }
 
 int sfs_fclose(int fileID);

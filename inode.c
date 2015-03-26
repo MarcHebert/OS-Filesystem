@@ -36,34 +36,35 @@ int i_newEntry()
 	return index;
 }
 
-void i_deleteEntry(int index)
+void i_deleteEntry(int index)//TODO error handling
 {
 	b_unset(iFree, index);
 	ic->i[index].active = 0;
 	ic->i[index].size = 0;
+	//TODO set pointers to null
 }
 
-int i_getSize(int index)
+int i_getSize(int index)//TODO error handling
 {
 	return ic->i[index].size;
 }
 
-void i_setSize(int index, int sz)
+void i_setSize(int index, int sz)//TODO error handling
 {
 	ic->i[index].size = sz;
 }
 
-int i_getPointer(int index, int pointerNum)
+int i_getPointer(int index, int pointerNum)//TODO error handling
 {
 	return ic->i[index].pointers[pointerNum];
 }
 
-int i_getIndPointer(int index) 
+int i_getIndPointer(int index) //TODO error handling
 {
 	return ic->i[index].indPointer;
 }
 
-int i_isActive(int index)
+int i_isActive(int index)//TODO error handling
 {
 	return ic->i[index].active;
 }
