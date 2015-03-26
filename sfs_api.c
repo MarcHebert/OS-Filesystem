@@ -32,27 +32,11 @@ int sfs_open(char* filename)
 	{
 		
 	}
-
-	char* name = null;
-	while(strcmp(filename,name)!=0)
-	{
-		if(sfs_get_next_filename(name)==0)
-		{
-			//file doesn't exist
-			exist = 0;
-			break;
-		}
-	}
-
-	if (exist != 0)//file exists,
+	else//file exists
 	{
 
 	}
-	else//file does not exist
-	{
 
-
-	}
 
 	/*
 	int inode = get_inode(filename);
@@ -155,7 +139,7 @@ int mksfs(int fresh)
 		sb.magic = 0xAABB0005;
 		sb.blksz = BLOCKSIZE_;
 		sb.fsSize = NUM_BLOCKS_;
-		sb.rtdir = //TO BE DETERMINED
+		sb.rtdir = MAX_FILES_//place root directory at the last inode index
 
 		//write superblock to disk
 		write_blocks(0,1,(void*)&sb);

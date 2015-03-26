@@ -5,14 +5,19 @@
 
 struct file_descriptor_table_entry
 {
-	int rd,
-		wt,
-		inode;
-
+	int rw;
+		active;
+//inode = index
 }typedef FTDentry;
 
 
-struct file_descriptor_table{}typedef FDT;
+struct file_descriptor_table
+{
+	FTDentry f[MAX_FILES_];//inode = index
+}typedef FDT;
 
-int find_next_free_slot(FDT table);
-int make_file_desc_entry(entry,  oft_entry,  read_pointer,  write_pointer);
+void f_activate(int inode);
+int f_getRW(int inode);
+void f_setRW(int inode, int newrw);
+void f_incdecRW(int inode, int incdec);
+void f_deactivate(int inode);
