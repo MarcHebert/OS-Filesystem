@@ -2,6 +2,7 @@
 //260574038
 #include "constants.h"
 #include "bitmap.h"
+#include "indirectblock.h"
 
 
 struct i_node
