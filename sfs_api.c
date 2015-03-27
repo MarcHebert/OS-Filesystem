@@ -155,14 +155,8 @@ int mksfs(int fresh)
 		//setup inodetable
 		i_initCache();
 
-		//setup superblock
-		sb.magic = 0xAABB0005;
-		sb.blksz = BLOCKSIZE_;
-		sb.fsSize = NUM_BLOCKS_;
-		sb.rtdir = MAX_FILES_//place root directory at the last inode index
-
 		//write superblock to disk
-		write_blocks(0,1,(void*)&sb);
+		write_blocks(0,1,s_init());
 
 	}
 

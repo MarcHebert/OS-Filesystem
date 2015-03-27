@@ -16,6 +16,7 @@
 #define ICACHE_BLOCKCOUNT_ MAX_ICACHE_SIZE_ / BLOCKSIZE_
 #define MAX_DIR_SIZE_ 4096 //(MAX_FILE_NAME_+MAX_FILE_EXT_+10) * MAX_FILES_ + 4 raised to next power of 2
 #define DIR_BLOCKCOUNT_ MAX_DIR_SIZE_ / BLOCKSIZE_
+#define SB_MAGIC_ 0xAABB0005
 
 #include <stdlib.h>
 #include <string.h>
