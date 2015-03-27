@@ -5,13 +5,15 @@ icache* ic;
 //inode_cache.i[DIR_INODE_] will point to directory number
 icache* i_initCache()
 {
+	
 	int x;
-	for (x = 0; x<MAX_FILES_;x++)
+	for (x = 1; x<MAX_FILES_;x++)
 	{
 		ic->i[x].active = 0;
 		ic->i[x].size = 0;
 	}
 	ic->iFree= b_init(NUM_INODES_);
+	return ic; 
 }
 
 icache* i_getIcache()

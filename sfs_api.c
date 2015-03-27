@@ -9,16 +9,49 @@
 #include "directory.h"
 #include "inode.h"
 
-//cached items
-sblock sb;
-fbitmap fbm;
-FTDentry FDTtable[NUM_INODES_];
-
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 char defaultname[] = "MarcFS";
 int errorstatus = 0;
 
+sblock* sb;
+icache* ic;
+FDB* fd;
+directory* d;
 
+//shorcut/aliases
+int write_1block(int block, char* buffer)
+{
+	return write_blocks(block, 1, buffer);
+}
+
+int read_1block(int block, char* buffer)
+{
+	return read_blocks(block, 1, buffer);
+}
+
+
+//initialize functions//
+int init_superblock()
+{
+	return write_1block(SB_BLOCK_, sb =s_init());
+}
+
+int init_directory()
+{
+	d = d_initDir();
+}
+
+int init_icache()
+{
+	ic = i_initCache()
+}
+
+
+
+//regular
 int sfs_open(char* filename)
 {
 	//check FDT or inodes to see if file exists
@@ -62,16 +95,126 @@ int sfs_open(char* filename)
 	*/
 }
 
+
+
+//write//
+
+int num_new_blocks_needed(int inode, int newBytes, int usedDataBlocks)
+{
+	return ((f_getRW(inode)+newBytes) - (usedDataBlocks * BLOCKSIZE_)) / BLOCKSIZE_ + 1;
+}
+
+int write_partblock(int block, const char* buffer, int byteOffset, int numBytes)
+{
+	//load block to write to
+	char* readbuf = (char*) malloc(sizeof(char) * BLOCKSIZE_);
+	read_1block(block,readbuf);
+
+	//write where need be
+	memcpy(byteOffset + readbuf, buffer, numBytes);//strncpy or memcpy? TBD
+	//store modified block back
+	write_1block(block, readbuf);
+	free(readbuf);
+} 
+
+int num_indptrs(int inode)//number of used blocks pointed to by indirect data block
+{
+	int filesize = i_getSize(inode);//fetch filesize from icache
+	int bytesBeforeInd = NUM_DIR_DATABLOCKS_ * BLOCKSIZE_;
+	if (bytesBeforeInd>filesize)//no indirect block ptrs used
+	{
+		return 0;
+	}
+	else
+	{
+		return (filesize - bytesBeforeInd)/ NUM_PTRS_INDIR_ +1;
+	} 
+}
+
+int load_indblock(int inode, char* buffer)//loads into indirect data block into buffer
+{
+	return read_blocks(i_getIndPointer(inode), 1, buffer);
+}
+
+int load_blocknums(int inode, int* blockNums)//load all block nums into blockNums array and returns total blocks used
+{
+	int numIndPtrs, numDirPtrs, x;
+	
+
+	//check if ind is used and if so how much
+	if(numIndPtrs = num_indptrs(int inode)>0)//ind is used
+	{
+		char* buffer = (char*)malloc(BLOCKSIZE_);
+		load_indblock(inode, buffer);
+
+		numDirPtrs = NUM_DIR_DATABLOCKS_;
+
+		//copy block nums from direct blocks
+		for(x = 0; x < numDirPtrs;x++)
+		{
+			blockNums[x] = i_getPointer(inode, x);
+		}
+		//copy block nums from indirect block and attach to blockNums array
+		memcpy((blockNums+ numDirPtrs), buffer, sizeof(int) * numIndPtrs);
+		free(buffer);
+	}
+	else//just direct pointers used
+	{
+		numDirPtrs = (i_getSize(inode)/ BLOCKSIZE_);//normally round up by 1 but it's upper bound on array
+		for(x = 0; x< numDirPtrs;x++)
+		{
+			blockNums[x] = i_getPointer(inode, x);
+		}
+	}
+	return numDirPtrs + numIndPtrs;
+}
+
+//does most of heavy lifting required by sfs_fwrite()
+int write_helper(const char* buffer, int numBytes, int* blockNums, int offset)
+{
+	int x, writtenBytes =0; 
+	int remainingBytes, veryLastBytes;
+
+	//copy buffer
+	char* readbuf = (char*) malloc(numBytes * sizeof(char*));
+	memcpy(readbuf,buffer, numBytes);
+
+	char* bufptr = readbuf;;// starts at head, iterates to every block addr
+
+	//get number of bytes until next block if necessary else just remaining bytes
+	remainingBytes = min(numBytes, BLOCKSIZE_ - offset);
+
+	//write first block
+	write_partblock(blockNums[x], bufptr, offset, remainingBytes);
+	x++;
+	writtenBytes = writtenBytes + remainingBytes;
+	bufptr = bufptr + remainingBytes;
+	//done
+
+	//write remaining blocks
+	while(BLOCKSIZE_ < numBytes - writtenBytes)
+	{
+		write_1block(blockNums[x], bufptr);
+		
+		//increment to next block
+		x++;
+		bufptr = bufptr + BLOCKSIZE_;
+		writtenBytes = writtenBytes + BLOCKSIZE_;
+	}
+
+	//write possible ending partial block
+	if(veryLastBytes = numBytes - writtenBytes > 0)
+	{
+		write_partblock(blockNums[x], bufptr, 0, veryLastBytes);
+		writtenBytes = writtenBytes + veryLastBytes;
+	}
+	return writtenBytes;
+}
+
+
 int sfs_fwrite(int fileID, const char *buf, int length)
 {
-	//writes length*bytes of buffered data in buf onto the open file
-	//starting from read/write pointer
-
-	//increases the size of the file by length*bytes
-
-	//will obviously use diskemu.write_blocks()
-
-	buf = malloc(BLOCKSIZE*sizeof(char));
+	//TODO
 }
 
 int sfs_fread(int fileID, char *buf, int length);
@@ -156,7 +299,7 @@ int mksfs(int fresh)
 		i_initCache();
 
 		//write superblock to disk
-		write_blocks(0,1,s_init());
+		errorstatus = 
 
 	}
 
