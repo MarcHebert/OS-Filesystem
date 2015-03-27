@@ -99,9 +99,9 @@ int sfs_open(char* filename)
 
 //write//
 
-int num_new_blocks_needed(int inode, int newBytes, int usedDataBlocks)
+int num_new_blocks_needed(int inode, int newBytes, int numUsedDataBlocks)
 {
-	return ((f_getRW(inode)+newBytes) - (usedDataBlocks * BLOCKSIZE_)) / BLOCKSIZE_ + 1;
+	return ((f_getRW(inode)+newBytes) - (numUsedDataBlocks * BLOCKSIZE_)) / BLOCKSIZE_ + 1;
 }
 
 int write_partblock(int block, const char* buffer, int byteOffset, int numBytes)
@@ -138,7 +138,7 @@ int load_indblock(int inode, char* buffer)//loads into indirect data block into 
 
 int load_blocknums(int inode, int* blockNums)//load all block nums into blockNums array and returns total blocks used
 {
-	int numIndPtrs, numDirPtrs, x;
+	int numIndPtrs, numDirPtrs, x =0;
 	
 
 	//check if ind is used and if so how much
@@ -172,7 +172,8 @@ int load_blocknums(int inode, int* blockNums)//load all block nums into blockNum
 //does most of heavy lifting required by sfs_fwrite()
 int write_helper(const char* buffer, int numBytes, int* blockNums, int offset)
 {
-	int x, writtenBytes =0; 
+	int x = 1; 
+	int writtenBytes =0; 
 	int remainingBytes, veryLastBytes;
 
 	//copy buffer
@@ -185,11 +186,9 @@ int write_helper(const char* buffer, int numBytes, int* blockNums, int offset)
 	remainingBytes = min(numBytes, BLOCKSIZE_ - offset);
 
 	//write first block
-	write_partblock(blockNums[x], bufptr, offset, remainingBytes);
-	x++;
+	write_partblock(blockNums, bufptr, offset, remainingBytes);
 	writtenBytes = writtenBytes + remainingBytes;
 	bufptr = bufptr + remainingBytes;
-	//done
 
 	//write remaining blocks
 	while(BLOCKSIZE_ < numBytes - writtenBytes)
@@ -214,10 +213,116 @@ int write_helper(const char* buffer, int numBytes, int* blockNums, int offset)
 
 int sfs_fwrite(int fileID, const char *buf, int length)
 {
-	//TODO
+	//init buffer
+	int* blockNums  = (int*)malloc(MAX_FILE_DATABLOCKS_ *sizeof(int));
+	
+	//acquire block numbers 
+	int numBlocks = load_blocknums(inode, blockNums);
+
+	//check whether write will require new block
+	if(numBlocks * BLOCKSIZE_ < f_getRW(fileID) + length)//more blocks required
+	{
+		numNewBlocks = num_new_blocks_needed(inode, length, numBlocks);
+		int x;
+		for(x = 0; i< numNewBlocks; x++)
+		{
+			if(int freeBlockNum = FDB_getfreeblock()<0)//check if no more freeblocks
+			{
+				return -1; //disk is full
+			}
+			FDB_setbit(freeBlockNum);
+			blockNums[numBlocks+ x] = freeBlockNum;
+		}
+	}
+
+	int writtenBytes = write_helper(buf, length, blockNums, f_getRW % BLOCKSIZE_);
+
+	//augment rw/wt pointer
+	f_incdecRW(writtenBytes);
+
+	//write & update freeblockmap to disk
+	write_1block(FBM_BLOCK_, FDB_get());
+
+	free(blockNums);
+
+	return writtenBytes;
 }
 
-int sfs_fread(int fileID, char *buf, int length);
+
+//read//
+
+int read_partblock(int block, char* buffer, int offset, int numBytes)
+{
+	//load block
+	char* readbuf = (char*) malloc(sizeof(char) * BLOCKSIZE_);
+	read_1block(block,readbuf);
+
+	//write where need be
+	int x = memcpy(buffer, byteOffset + readbuf, numBytes);//strncpy or memcpy? TBD
+	
+	free(readbuf);
+
+	return x;
+}
+
+//as with the case of write_helper, does most of the heavy lifting and core functionality of sfs_fread
+int read_helper(char* buffer, int numBytes, int* blockNums, int offset)
+{
+	int x = 1;
+	int readBytes =0; 
+	int remainingBytes, veryLastBytes;
+
+	remainingBytes = min(numBytes, BLOCKSIZE_ - offset);
+	char* bufptr = buffer;
+
+	//read first block
+	read_partblock(blockNums, bufptr, offset, remainingBytes);
+	readBytes = readBytes + remainingBytes;
+	//augment ptr to next block
+	
+	bufptr = bufptr + remainingBytes;
+
+
+	//write remaining blocks
+	while( BLOCKSIZE_ < numBytes - readBytes)
+	{
+		read_1block(blockNums[x], bufptr);
+
+		//increment to next block
+		x++;
+		readBytes = readBytes + BLOCKSIZE_;
+		bufptr = bufptr + BLOCKSIZE_;
+	}
+
+	//wrote possible ending partial block
+	veryLastBytes = numBytes - readBytes;
+	if(0 < veryLastBytes)
+	{
+		read_partblock(blockNums[x], bufptr, 0, veryLastBytes);
+	}
+
+}
+
+int sfs_fread(int fileID, char *buf, int length)
+{
+	int numBytes = length;
+	//check for out of bounds read
+	if(i_getSize(fileID) < f_getRW(fileID)+ numBytes)
+	{
+		// if so correct length
+		numBytes = i_getSize(fileID) - f_getRW(fileID);
+	}
+
+	//acquire necessary datablocks numbers
+	int* blockNums = (int*) malloc (MAX_FILE_DATABLOCKS_ * sizeof(int));
+	int numBlocksUsed = load_blocknums(fileID, blockNums);
+
+	//execute read
+	read_helper(buf, numBytes, blockNums, 0);
+
+	return numBytes;
+}
+
 int sfs_fseek(int fileID, int offset)
 {
 
@@ -231,8 +336,22 @@ int sfs_remove(char *file)
 		return -1;//file doesn't exist
 	//will possibly change to not return error and instead do nothing
 	int id = d_getInode(index);
+
+	//clear associated data blocks
+	int* blockNums = (int*) malloc (MAX_FILE_DATABLOCKS_ * sizeof(int));
+	int numBlocksUsed = load_blocknums(id, blockNums);
+	int x;
+	for(x =0l i < numBlocksUsed;x++)
+	{
+		FDB_unsetbit(blockNums[x]);
+	}
+
+	free(blockNums);
+
+
 	i_deleteEntry(id);// TODO error handle here
-	//TODO release data blocks used by the file
+	f_deactivate(id);
+	write_1block(FBM_BLOCK_, FDB_get());
 	return d_removeEntry(index);
 }
 
