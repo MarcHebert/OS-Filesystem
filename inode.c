@@ -13,6 +13,10 @@ icache* i_initCache()
 		ic->i[x].size = 0;
 	}
 	ic->iFree= b_init(NUM_INODES_);
+	
+	//setup directory inode
+	b_set(ic->iFree, 0);
+	ic->i[0].active  = 1;
 	return ic; 
 }
 
@@ -54,6 +58,11 @@ int i_getSize(int index)//TODO error handling
 void i_setSize(int index, int sz)//TODO error handling
 {
 	ic->i[index].size = sz;
+}
+
+void i_incdecSize(int index, int incdec)
+{
+	i_setSize(index, i_getSize(index)+incdec);
 }
 
 int i_getPointer(int index, int pointerNum)//TODO error handling

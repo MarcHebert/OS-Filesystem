@@ -26,6 +26,7 @@ void i_setIcache( icache tmp);
 icache* i_getIcache();
 int i_getSize(int index);
 void i_setSize(int index, int sz);
+void i_incdecSize(int index, int incdec);
 int i_getPointer(int index, int pointerNum);
 int i_getIndPointer(int index);
 int i_isActive(int index);

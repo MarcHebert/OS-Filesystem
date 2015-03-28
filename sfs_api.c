@@ -8,6 +8,7 @@
 #include "filedescriptortable.h"
 #include "directory.h"
 #include "inode.h"
+#include "indirectblock.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -18,6 +19,7 @@ int errorstatus = 0;
 
 sblock* sb;
 icache* ic;
+int icacheBlocknums[ICACHE_NUM_BLOCKS];
 FDB* fd;
 directory* d;
 
@@ -32,23 +34,64 @@ int read_1block(int block, char* buffer)
 	return read_blocks(block, 1, buffer);
 }
 
+int write_superblock()
+{
+	char* buffer =(char*) malloc(sizeof(sb));
+	memcpy(buffer, sb, sizeof(sb));
+
+	write_1block(SB_BLOCK_, buffer);
+	free(buffer);
+}
+
+int write_icache()
+{
+	char* buffer =(char*) malloc(sizeof(ic));
+	memcpy(buffer, ic,sizeof(ic));
+
+	write_helper(buffer, sizeof(ic), icacheBlocknums, 0);
+	free(buffer);
+}
+
+int write_FDB()
+{
+	char* buffer =(char*) malloc(sizeof(fd));
+	memcpy(buffer, fd, sizeof(fd));
+	write_1block(FDB_BLOCK_, buffer);
+	free(buffer);
+}
 
 //initialize functions//
 int init_superblock()
 {
-	return write_1block(SB_BLOCK_, sb =s_init());
+	sb =s_init();
+	write_superblock();	
+}
+
+
+
+
+int init_icache()
+{
+	int x;
+	for(x = 0; x< ICACHE_NUM_BLOCKS;x++)
+	{
+		icacheBlocknums[x] = ICACHE_BLOCK_START_ + x;
+	}
+	ic = i_init();
+	write_icache();
+}
+
+int init_FDB()
+{	
+	fd = FDB_init();
+	write_FDB();
 }
 
 int init_directory()
 {
+
 	d = d_initDir();
 }
-
-int init_icache()
-{
-	ic = i_initCache()
-}
-
 
 
 //regular
@@ -238,7 +281,7 @@ int sfs_fwrite(int fileID, const char *buf, int length)
 	int writtenBytes = write_helper(buf, length, blockNums, f_getRW % BLOCKSIZE_);
 
 	//augment rw/wt pointer
-	f_incdecRW(writtenBytes);
+	f_incdecRW(fileID, writtenBytes);
 
 	//write & update freeblockmap to disk
 	write_1block(FBM_BLOCK_, FDB_get());
@@ -411,14 +454,10 @@ int mksfs(int fresh)
 	{
 		errorstatus = init_fresh_disk(defaultname, BLOCKSIZE, NUM_BLOCKS);
 
-		//setup directory
-		d_initDir();
-
-		//setup inodetable
-		i_initCache();
-
-		//write superblock to disk
-		errorstatus = 
+		init_superblock();
+		init_FDB();
+		init_icache();
+		init_directory();
 
 	}
 
@@ -426,9 +465,7 @@ int mksfs(int fresh)
 	{
 		errorstatus = init_disk(defualtname, BLOCKSIZE, NUM_BLOCKS);
 		
-		//read superblock
-		void buf;
-		read_blocks(0,1, (void*)&sb);
+		//not possible yet
 	}
 	return errorstatus;
 }

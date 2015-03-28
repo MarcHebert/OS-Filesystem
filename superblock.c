@@ -8,6 +8,6 @@ sblock* s_init()
 	s->blocksize = BLOCKSIZE_;
 	s->fsSize = NUM_BLOCKS_;
 	s->itablelength = NUM_INODES_;
-	s->rtdir = MAX_FILES_;//place root directory at the last inode index
+	s->rtdir = 0;/
 	return s;
 }
