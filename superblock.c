@@ -1,6 +1,7 @@
 //Marc Hebert
 //260574038
- 
+#include "superblock.h" 
+
 sblock* s_init()
 {
 	sblock* s;

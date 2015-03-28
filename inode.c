@@ -1,5 +1,6 @@
 //Marc Hebert
 //260574038
+#include "inode.h"
 
 icache* ic;
 //inode_cache.i[DIR_INODE_] will point to directory number

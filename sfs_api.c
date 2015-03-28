@@ -3,12 +3,13 @@
 
 #include "constants.h"
 #include "types.h"
-#include "diskemu.h"
+#include "disk_emu.h"
 #include "superblock.h"
 #include "filedescriptortable.h"
 #include "directory.h"
 #include "inode.h"
 #include "indirectblock.h"
+#include "sfs_api.h"
 
 #include <string.h>
 #include <stdio.h>
